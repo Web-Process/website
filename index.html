@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebProcess — Coming Soon</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <meta
+    name="description"
+    content="WebProcess is a specification for process modelling in the AI era, with an open source reference implementation in Python."
+  />
+  <style>
+    :root {
+      --bg: #efe8dc;
+      --paper: rgba(255, 252, 247, 0.86);
+      --paper-strong: #fffdfa;
+      --ink: #1c1814;
+      --muted: #6f665e;
+      --line: rgba(91, 78, 65, 0.18);
+      --line-strong: rgba(74, 61, 49, 0.35);
+      --accent: #bc6c25;
+      --accent-soft: rgba(188, 108, 37, 0.14);
+      --teal: #2f6f6b;
+      --shadow: 0 28px 60px rgba(38, 29, 21, 0.12);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      --sans: "Avenir Next", "Segoe UI", sans-serif;
+      --mono: "SFMono-Regular", "Menlo", "Consolas", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(47, 111, 107, 0.12), transparent 26%),
+        radial-gradient(circle at 85% 18%, rgba(188, 108, 37, 0.14), transparent 24%),
+        linear-gradient(180deg, #f6f2ea 0%, var(--bg) 100%);
+      overscroll-behavior: none;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: var(--sans);
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 32px 32px;
+      overscroll-behavior: none;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 32px;
+    }
+
+    .frame {
+      width: min(1120px, 100%);
+      border: 1px solid var(--line-strong);
+      border-radius: 28px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+      position: relative;
+      isolation: isolate;
+    }
+
+    .frame::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(125deg, rgba(255, 255, 255, 0.44), transparent 40%),
+        radial-gradient(circle at bottom right, rgba(47, 111, 107, 0.08), transparent 30%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 253, 250, 0.76);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.96rem;
+      letter-spacing: 0.02em;
+    }
+
+    .mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid rgba(47, 111, 107, 0.32);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(239, 232, 220, 0.92));
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mark::before,
+    .mark::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      background: var(--teal);
+    }
+
+    .mark::before {
+      width: 18px;
+      height: 2px;
+      transform: rotate(28deg) translateY(-3px);
+    }
+
+    .mark::after {
+      width: 2px;
+      height: 18px;
+      transform: rotate(28deg) translateX(3px);
+      background: var(--accent);
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+    }
+
+    .status {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.54);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      gap: 32px;
+      padding: 52px;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 10ch;
+      font-family: var(--serif);
+      font-size: clamp(3.3rem, 8vw, 6.1rem);
+      line-height: 0.94;
+      letter-spacing: -0.05em;
+      font-weight: 700;
+    }
+
+    .lede {
+      margin: 24px 0 0;
+      max-width: 40rem;
+      font-size: 1.12rem;
+      line-height: 1.72;
+      color: #403830;
+    }
+
+    .lede strong {
+      color: var(--ink);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .chip {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.58);
+      color: #4d443b;
+      font-size: 0.92rem;
+    }
+
+    .panel {
+      border: 1px solid var(--line-strong);
+      border-radius: 24px;
+      background: rgba(28, 24, 20, 0.95);
+      color: #f2ece2;
+      box-shadow: 0 24px 44px rgba(20, 17, 13, 0.22);
+      overflow: hidden;
+      align-self: start;
+      transform: rotate(1.4deg);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      font-family: var(--mono);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #b8aea2;
+    }
+
+    .lights {
+      display: inline-flex;
+      gap: 7px;
+    }
+
+    .lights span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .panel-body {
+      padding: 18px 16px 16px;
+    }
+
+    .yaml {
+      margin: 0;
+      padding: 0;
+      white-space: pre-wrap;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      line-height: 1.8;
+      color: #d8d0c5;
+    }
+
+    .yaml .key {
+      color: #9dd1cb;
+    }
+
+    .yaml .value {
+      color: #f5d09c;
+    }
+
+    .yaml .comment {
+      color: #8d8478;
+    }
+
+    .diagram {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: grid;
+      gap: 12px;
+    }
+
+    .node {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .node-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .node-kind {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #c1b6aa;
+    }
+
+    .arrow {
+      margin-left: 18px;
+      width: 2px;
+      height: 18px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(188, 108, 37, 0.58));
+      position: relative;
+    }
+
+    .arrow::after {
+      content: "";
+      position: absolute;
+      left: -4px;
+      bottom: -2px;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 7px solid rgba(188, 108, 37, 0.8);
+    }
+
+    .foot {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      padding: 0 52px 52px;
+    }
+
+    .note {
+      padding: 18px 18px 20px;
+      border-top: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.42);
+    }
+
+    .note-title {
+      margin: 0 0 8px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .note p {
+      margin: 0;
+      color: #4e453c;
+      line-height: 1.6;
+      font-size: 0.96rem;
+    }
+
+    .accent {
+      color: var(--accent);
+    }
+
+    @media (max-width: 920px) {
+      .hero,
+      .foot {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding: 34px 24px 24px;
+      }
+
+      .foot {
+        padding: 0 24px 24px;
+      }
+
+      h1 {
+        max-width: none;
+      }
+
+      .panel {
+        transform: none;
+      }
+
+      .topbar {
+        padding: 14px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="frame">
+      <div class="topbar">
+        <div class="brand">
+          <div class="mark" aria-hidden="true"></div>
+          <div>
+            <div class="eyebrow">WebProcess</div>
+            <div>Process modelling for the AI era</div>
+          </div>
+        </div>
+        <div class="status">Coming Soon</div>
+      </div>
+
+      <div class="hero">
+        <div>
+          <h1>Coming Soon</h1>
+          <p class="lede">
+            <strong>WebProcess</strong> is a specification for process modelling in the AI era,
+            with an <strong>open source reference implementation in Python</strong>.
+            It is designed for workflows that are human-readable, runtime-executable,
+            source-control friendly, and ready for human and agentic collaboration.
+          </p>
+
+          <div class="chips" aria-label="Key qualities">
+            <div class="chip">YAML as source of truth</div>
+            <div class="chip">Structured visual projection</div>
+            <div class="chip">Agentic-first execution</div>
+          </div>
+        </div>
+
+        <aside class="panel" aria-label="WebProcess example">
+          <div class="panel-head">
+            <span>Reference Shape</span>
+            <div class="lights" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <div class="panel-body">
+<pre class="yaml"><span class="key">kind</span>: <span class="value">Process</span>
+<span class="key">spec</span>:
+  <span class="key">goal</span>: <span class="value">Coordinate people, tools, and AI systems</span>
+  <span class="key">sourceOfTruth</span>: <span class="value">yaml</span>
+  <span class="key">runtime</span>: <span class="value">python</span>
+  <span class="comment"># readable by humans, executable by machines</span></pre>
+
+            <div class="diagram" aria-hidden="true">
+              <div class="node">
+                <div>
+                  <div class="node-kind">process</div>
+                  <div class="node-name">Model intent</div>
+                </div>
+                <div class="node-kind">explicit</div>
+              </div>
+              <div class="arrow"></div>
+              <div class="node">
+                <div>
+                  <div class="node-kind">action</div>
+                  <div class="node-name">Run with agents + tools</div>
+                </div>
+                <div class="node-kind">python</div>
+              </div>
+              <div class="arrow"></div>
+              <div class="node">
+                <div>
+                  <div class="node-kind">result</div>
+                  <div class="node-name">Durable, reviewable flow</div>
+                </div>
+                <div class="node-kind accent">open</div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="foot">
+        <section class="note">
+          <h2 class="note-title">Why it matters</h2>
+          <p>
+            Workflow definitions should not collapse into prompt soup or diagram-only artifacts.
+            WebProcess treats process design as a <span class="accent">real specification surface</span>.
+          </p>
+        </section>
+        <section class="note">
+          <h2 class="note-title">What it aims for</h2>
+          <p>
+            Clear semantics, modular resources, durable execution, and a model that can express
+            retries, approvals, waits, loops, and AI-driven decision paths.
+          </p>
+        </section>
+        <section class="note">
+          <h2 class="note-title">What is coming</h2>
+          <p>
+            The public site will expand with the specification, examples, and the Python reference
+            implementation. For now, this page marks the work in progress.
+          </p>
+        </section>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
